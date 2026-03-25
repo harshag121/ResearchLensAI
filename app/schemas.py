@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 class PaperBase(BaseModel):
     title: str
     abstract: str
-    authors: List[str] = []
+    authors: List[str] = Field(default_factory=list)
     url: Optional[str] = None
     year: int = 2024
     field: str = "cs.AI"
@@ -25,7 +25,7 @@ class SearchQuery(BaseModel):
 class SearchResult(PaperBase):
     id: str
     score: float
-    metadata: Dict[str, Any] = {}
+    metadata: Dict[str, Any] = Field(default_factory=dict)
 
 class BatchUpload(BaseModel):
     papers: List[PaperUpload]

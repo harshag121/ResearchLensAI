@@ -1,0 +1,141 @@
+{
+  "dataset_info": {
+    "name": "ResearchLens Academic Papers Sample",
+    "version": "1.0",
+    "total_papers": 10,
+    "fields": ["cs.AI", "cs.LG", "cs.CL", "cs.CV", "cs.IR", "cs.DB"],
+    "date_generated": "2026-03-25"
+  },
+  "papers": [
+    {
+      "id": "paper_001",
+      "title": "Attention Is All You Need: Transformer Architecture Revolution",
+      "abstract": "We propose a new simple network architecture, the Transformer, based solely on attention mechanisms, dispensing with recurrence and convolutions entirely. Experiments show these models superior in quality while being more parallelizable and requiring significantly less time to train.",
+      "authors": ["Ashish Vaswani", "Noam Shazeer", "Niki Parmar"],
+      "year": 2017,
+      "field": "cs.CL",
+      "citations": 85000,
+      "doi": "10.48550/arXiv.1706.03762",
+      "keywords": ["transformer", "attention mechanism", "NLP", "deep learning"],
+      "venue": "NeurIPS",
+      "url": "https://arxiv.org/abs/1706.03762"
+    },
+    {
+      "id": "paper_002",
+      "title": "BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding",
+      "abstract": "We introduce a new language representation model called BERT, which stands for Bidirectional Encoder Representations from Transformers. Unlike recent language representation models, BERT is designed to pre-train deep bidirectional representations from unlabeled text.",
+      "authors": ["Jacob Devlin", "Ming-Wei Chang", "Kenton Lee", "Kristina Toutanova"],
+      "year": 2019,
+      "field": "cs.CL",
+      "citations": 65000,
+      "doi": "10.48550/arXiv.1810.04805",
+      "keywords": ["BERT", "pre-training", "NLP", "transformer", "bidirectional"],
+      "venue": "NAACL",
+      "url": "https://arxiv.org/abs/1810.04805"
+    },
+    {
+      "id": "paper_003",
+      "title": "Deep Residual Learning for Image Recognition",
+      "abstract": "We present a residual learning framework to ease the training of networks that are substantially deeper than those used previously. We explicitly reformulate the layers as learning residual functions with reference to the layer inputs, instead of learning unreferenced functions.",
+      "authors": ["Kaiming He", "Xiangyu Zhang", "Shaoqing Ren", "Jian Sun"],
+      "year": 2016,
+      "field": "cs.CV",
+      "citations": 120000,
+      "doi": "10.48550/arXiv.1512.03385",
+      "keywords": ["ResNet", "computer vision", "CNN", "deep learning", "image recognition"],
+      "venue": "CVPR",
+      "url": "https://arxiv.org/abs/1512.03385"
+    },
+    {
+      "id": "paper_004",
+      "title": "Generative Adversarial Nets",
+      "abstract": "We propose a new framework for estimating generative models via an adversarial process, in which we simultaneously train two models: a generative model G that captures the data distribution, and a discriminative model D that estimates the probability that a sample came from the training data.",
+      "authors": ["Ian Goodfellow", "Jean Pouget-Abadie", "Mehdi Mirza"],
+      "year": 2014,
+      "field": "cs.LG",
+      "citations": 55000,
+      "doi": "10.48550/arXiv.1406.2661",
+      "keywords": ["GAN", "generative models", "adversarial training", "unsupervised learning"],
+      "venue": "NeurIPS",
+      "url": "https://arxiv.org/abs/1406.2661"
+    },
+    {
+      "id": "paper_005",
+      "title": "Adam: A Method for Stochastic Optimization",
+      "abstract": "We introduce Adam, an algorithm for first-order gradient-based optimization of stochastic objective functions, based on adaptive estimates of lower-order moments. The method is straightforward to implement, is computationally efficient, and has little memory requirements.",
+      "authors": ["Diederik P. Kingma", "Jimmy Ba"],
+      "year": 2015,
+      "field": "cs.LG",
+      "citations": 140000,
+      "doi": "10.48550/arXiv.1412.6980",
+      "keywords": ["optimization", "Adam", "stochastic gradient descent", "deep learning"],
+      "venue": "ICLR",
+      "url": "https://arxiv.org/abs/1412.6980"
+    },
+    {
+      "id": "paper_006",
+      "title": "Language Models are Few-Shot Learners",
+      "abstract": "We demonstrate that scaling up language models greatly improves task-agnostic, few-shot performance. GPT-3 achieves strong performance on many NLP datasets, including translation, question-answering, and cloze tasks.",
+      "authors": ["Tom B Brown", "Benjamin Mann", "Nick Ryder", "Melanie Subbiah"],
+      "year": 2020,
+      "field": "cs.CL",
+      "citations": 28000,
+      "doi": "10.48550/arXiv.2005.14165",
+      "keywords": ["GPT-3", "few-shot learning", "language models", "prompting"],
+      "venue": "NeurIPS",
+      "url": "https://arxiv.org/abs/2005.14165"
+    },
+    {
+      "id": "paper_007",
+      "title": "Improved Guarantees and a Multiple-Descent Curve for Column Subset Selection and the Nystrom Method",
+      "abstract": "The Nystrom method is a popular technique for generating low-rank approximations of kernel matrices. We analyze the method and provide novel guarantees that improve upon existing bounds.",
+      "authors": ["Michal Derezinski", "Rajiv Khanna", "Mahoney"],
+      "year": 2020,
+      "field": "cs.LG",
+      "citations": 150,
+      "doi": "10.48550/arXiv.2002.09073",
+      "keywords": ["Nystrom method", "kernel methods", "column subset selection", "approximation"],
+      "venue": "AISTATS",
+      "url": "https://arxiv.org/abs/2002.09073"
+    },
+    {
+      "id": "paper_008",
+      "title": "Vector Database Systems: A Survey and Performance Evaluation",
+      "abstract": "Vector databases have emerged as essential infrastructure for AI applications. This paper surveys the landscape of vector database systems, comparing architectural decisions, indexing strategies, and query performance across different implementations.",
+      "authors": ["James Wang", "Sarah Chen", "Michael Liu"],
+      "year": 2024,
+      "field": "cs.IR",
+      "citations": 45,
+      "doi": "10.48550/arXiv.2401.12345",
+      "keywords": ["vector databases", "ANN search", "HNSW", "similarity search", "survey"],
+      "venue": "SIGMOD",
+      "url": "https://arxiv.org/abs/2401.12345"
+    },
+    {
+      "id": "paper_009",
+      "title": "Endee: A High-Performance Vector Database for AI Applications",
+      "abstract": "We present Endee, a vector database optimized for AI search and retrieval workloads. Endee supports hybrid dense-sparse retrieval, advanced filtering, and quantization strategies for billion-scale vector collections on single-node deployments.",
+      "authors": ["Endee Team", "Vector DB Research Group"],
+      "year": 2025,
+      "field": "cs.DB",
+      "citations": 12,
+      "doi": "10.48550/arXiv.2501.00001",
+      "keywords": ["vector database", "Endee", "hybrid search", "quantization", "RAG"],
+      "venue": "CIDR",
+      "url": "https://github.com/endee-io/endee"
+    },
+    {
+      "id": "paper_010",
+      "title": "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks",
+      "abstract": "We explore techniques for combining parametric and non-parametric memory in language models. Our RAG models achieve state-of-the-art results on open-domain QA tasks while generating more specific, diverse, and factual responses.",
+      "authors": ["Patrick Lewis", "Ethan Perez", "Aleksandra Piktus"],
+      "year": 2020,
+      "field": "cs.CL",
+      "citations": 8500,
+      "doi": "10.48550/arXiv.2005.11401",
+      "keywords": ["RAG", "retrieval", "knowledge-intensive", "question answering", "generation"],
+      "venue": "NeurIPS",
+      "url": "https://arxiv.org/abs/2005.11401"
+    }
+  ]
+}

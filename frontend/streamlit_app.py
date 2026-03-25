@@ -47,6 +47,14 @@ def get_stats():
         pass
     return {"total_papers": 0, "dimension": 384, "index_name": "unknown"}
 
+
+def backend_is_available() -> bool:
+    try:
+        response = requests.get(f"{API_URL}/health", timeout=3)
+        return response.status_code == 200
+    except Exception:
+        return False
+
 def search_papers(query: str, filters: Dict[str, Any] = None, limit: int = 10):
     try:
         payload = {
@@ -91,6 +99,11 @@ with st.sidebar:
     st.info("Intelligent Academic Research Assistant powered by Endee")
     
     st.markdown("---")
+    backend_ready = backend_is_available()
+    if not backend_ready:
+        st.error("Backend is offline. Start FastAPI and Endee to enable search/ingest.")
+
+    st.markdown("---")
     stats = get_stats()
     st.metric("Indexed Papers", stats.get("total_papers", 0))
     st.caption(f"Index: {stats.get('index_name', 'default')}")
@@ -101,17 +114,24 @@ with st.sidebar:
         new_title = st.text_input("Title")
         new_abstract = st.text_area("Abstract")
         new_authors = st.text_input("Authors (comma-separated)")
-        new_field = st.selectbox("Field", ["cs.AI", "cs.LG", "cs.CV", "cs.CL", "bio.QM"])
+        new_field = st.selectbox("Field", ["cs.AI", "cs.LG", "cs.CV", "cs.CL", "cs.IR", "cs.DB", "bio.QM"])
         new_year = st.number_input("Year", 2000, 2030, 2024)
         new_url = st.text_input("URL (optional)")
         submitted = st.form_submit_button("Ingest Paper")
         
         if submitted:
-            if new_title and new_abstract:
+            can_submit = True
+            if not backend_ready:
+                st.error("Cannot ingest while backend is offline.")
+                can_submit = False
+            if not new_authors.strip():
+                st.warning("Please provide at least one author.")
+                can_submit = False
+            if can_submit and new_title and new_abstract:
                 if ingest_paper(new_title, new_abstract, new_authors, new_field, new_year, new_url):
                     st.success("Paper ingested successfully!")
                     st.rerun()
-            else:
+            elif can_submit:
                 st.warning("Please provide title and abstract.")
 
 # Main specific
@@ -127,6 +147,10 @@ with col2:
 
 # Search Logic
 if query:
+    if not backend_ready:
+        st.warning("Search is unavailable because backend is offline.")
+        st.stop()
+
     with st.spinner("Searching knowledge base..."):
         filters = {}
         if filter_year != "All Time":

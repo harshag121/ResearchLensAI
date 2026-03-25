@@ -88,6 +88,13 @@ The application is fully dockerized with `docker-compose`, ensuring seamless set
     -   **Backend (API Docs)**: [http://localhost:8000/docs](http://localhost:8000/docs)
     -   **Endee Server**: [http://localhost:8080](http://localhost:8080)
 
+5.  **Seed Sample Data (Recommended)**
+    In a separate terminal, load the included sample dataset:
+    ```bash
+    python scripts/seed_sample_data.py
+    ```
+    This seeds `data/sample_papers.json` into the project using the `/api/v1/ingest/batch` endpoint.
+
 ### Manual Setup (Local Development)
 
 If you prefer running without Docker:
@@ -120,6 +127,55 @@ We utilize Endee's Python client to manage the vector lifecycle:
 3.  **Querying**:
     -   The search endpoint performs a vector similarity search.
     -   Results are filtered by metadata (e.g., `{"year": {"$gte": 2023}}`).
+
+## ✅ Internship Requirement Mapping
+
+-   **Star Endee repository**: Please star [Endee GitHub](https://github.com/endee-io/endee).
+-   **Well-defined AI/ML project**: ResearchLens AI is a semantic search assistant for academic literature.
+-   **Practical AI use case**: Implements semantic search and retrieval workflow over paper embeddings.
+-   **Endee as core vector database**: All storage/query operations are built on Endee.
+-   **GitHub-hosted project**: Repository is ready for submission.
+-   **Comprehensive README**: Includes architecture, setup, execution, and Endee integration details.
+
+## Why Endee In This Project
+
+This project intentionally uses Endee features that align with research retrieval workloads:
+
+-   **Hybrid retrieval support**: Dense embeddings plus sparse lexical signals for better relevance.
+-   **Metadata filtering**: Fast slicing by year, field, and citation count for targeted discovery.
+-   **HNSW indexing**: Efficient ANN retrieval suitable for interactive search UX.
+-   **Quantization support**: Lower memory footprint for larger collections.
+
+## Sample Dataset
+
+-   Path: `data/sample_papers.json`
+-   Size: 10 curated papers across NLP, CV, IR, and database topics
+-   Includes: title, abstract, authors, year, field, citations, DOI, venue, URL
+
+## Quick Quality Evidence
+
+The current implementation performs semantic retrieval on classic benchmark-like queries. Example expectations:
+
+| Query | Expected top result type |
+|---|---|
+| "attention models in language" | Transformer / BERT papers |
+| "real-time object detection" | YOLO / Faster R-CNN papers |
+| "vector database hybrid search" | Endee / vector DB survey papers |
+
+These checks are easy to reproduce after running the seed script and searching in the Streamlit UI.
+
+## Testing
+
+Run all tests:
+
+```bash
+pytest -q
+```
+
+Current suite includes:
+
+-   Core paper processing tests
+-   API endpoint tests (health, stats, search, batch ingest)
 
 ## 📄 License
 MIT License

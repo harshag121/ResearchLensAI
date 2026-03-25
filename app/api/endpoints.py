@@ -19,7 +19,7 @@ async def ingest_batch_papers(batch: BatchUpload):
     """Ingest multiple papers."""
     try:
         count = await ingest_batch(batch.papers)
-        return {"count": count, "status": "indexed"}
+        return {"count": count}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
