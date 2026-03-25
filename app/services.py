@@ -1,5 +1,6 @@
 import logging
 from typing import List, Dict, Any
+import asyncio
 from core.endee_client import get_client, get_index, create_index
 from core.paper_processor import process_paper, process_papers_batch
 from core.embeddings import encode_text
@@ -10,7 +11,8 @@ logger = logging.getLogger(__name__)
 async def initialize_db():
     """Ensure index exists on startup."""
     try:
-        create_index()
+        # Avoid blocking the event loop during startup if Endee is slow/unavailable.
+        await asyncio.to_thread(create_index)
     except Exception as e:
         logger.error(f"Failed to initialize index: {e}")
 

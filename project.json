@@ -341,8 +341,8 @@
           "vector": "[384-dim embedding]",
           "sparse_indices": "[BM25 term indices]",
           "sparse_values": "[BM25 term weights]",
-          "meta": {"title", "abstract", "authors", "year", "field"},
-          "filter": {"year", "field", "citation_count"}
+          "meta": ["title", "abstract", "authors", "year", "field"],
+          "filter": ["year", "field", "citation_count"]
         }
       }
     },

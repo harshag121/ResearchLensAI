@@ -1,12 +1,11 @@
-from fastapi import APIRouter, HTTPException, UploadFile, File
+from fastapi import APIRouter, HTTPException
 from typing import List
 from app.schemas import PaperUpload, BatchUpload, SearchQuery, SearchResult, Stats
 from app.services import ingest_paper, ingest_batch, search_papers, get_db_stats
-import json
 
 router = APIRouter()
 
-@router.post("/ingest", response_model=Dict[str, str])
+@router.post("/ingest", response_model=dict[str, str])
 async def ingest(paper: PaperUpload):
     """Ingest a single paper."""
     try:
@@ -15,7 +14,7 @@ async def ingest(paper: PaperUpload):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/ingest/batch", response_model=Dict[str, int])
+@router.post("/ingest/batch", response_model=dict[str, int])
 async def ingest_batch_papers(batch: BatchUpload):
     """Ingest multiple papers."""
     try:

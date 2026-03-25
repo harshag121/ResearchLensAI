@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.endpoints import router as api_router
 from app.services import initialize_db
 import logging
+import asyncio
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -30,7 +31,7 @@ app.include_router(api_router, prefix="/api/v1")
 async def startup_event():
     """Initialize resources on startup."""
     logger.info("Starting ResearchLens AI API...")
-    await initialize_db()
+    asyncio.create_task(initialize_db())
 
 @app.get("/")
 async def root():

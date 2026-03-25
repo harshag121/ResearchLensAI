@@ -98,82 +98,48 @@ def process_papers_batch(
     model_name: str = "sentence-transformers/all-MiniLM-L6-v2"
 ) -> List[Dict[str, Any]]:
     """Process multiple papers efficiently with batch embedding."""
+    if not papers:
+        return []
+
     processed_papers = []
-    
+
     for i in range(0, len(papers), batch_size):
         batch = papers[i:i + batch_size]
-        
+
         # Extract texts for batch embedding
         texts_to_embed = []
         for paper in batch:
             text = f"{paper.get('title', '')} {paper.get('abstract', '')}"
             texts_to_embed.append(text)
-            
+
         # Batch encode
         dense_vectors = encode_batch(texts_to_embed, batch_size=len(batch), model_name=model_name)
-        
+
         # Process each paper with its pre-computed vector
         for j, paper in enumerate(batch):
             metadata = extract_metadata(paper)
             text_to_embed = texts_to_embed[j]
-            
+
             # Generate sparse vectors
             sparse_indices, sparse_values = generate_sparse_vector(text_to_embed)
-            
+
             vector_obj = {
-                "id": str(metadata["id"]),
-                "values": dense_vectors[j].tolist(),
+                "id": metadata["id"],
+                "vector": dense_vectors[j].tolist(),
                 "sparse_indices": sparse_indices,
                 "sparse_values": sparse_values,
-                "metadata": {
+                "meta": {
                     "title": metadata["title"],
                     "abstract": paper.get("abstract", ""),
                     "authors": metadata["authors"],
                     "url": paper.get("url", ""),
+                },
+                "filter": {
                     "year": metadata["year"],
                     "field": metadata["field"],
                     "citation_count": metadata["citations"],
-                }
+                },
             }
             processed_papers.append(vector_obj)
-            
+
     return processed_papers
-    if not papers:
-        return []
-
-    # Prepare texts for batch encoding
-    texts = [
-        f"{p.get('title', '')} {p.get('abstract', '')}"
-        for p in papers
-    ]
-
-    # Batch encode
-    embeddings = encode_batch(texts, batch_size, model_name)
-
-    # Process each paper with its embedding
-    vector_objects = []
-    for i, paper in enumerate(papers):
-        metadata = extract_metadata(paper)
-        text = texts[i]
-        sparse_indices, sparse_values = generate_sparse_vector(text)
-
-        vector_obj = {
-            "id": metadata["id"],
-            "vector": embeddings[i].tolist(),
-            "sparse_indices": sparse_indices,
-            "sparse_values": sparse_values,
-            "meta": {
-                "title": metadata["title"],
-                "abstract": paper.get("abstract", ""),
-                "authors": metadata["authors"],
-                "url": paper.get("url", ""),
-            },
-            "filter": {
-                "year": metadata["year"],
-                "field": metadata["field"],
-                "citation_count": metadata["citations"],
-            },
-        }
-        vector_objects.append(vector_obj)
-
-    return vector_objects
