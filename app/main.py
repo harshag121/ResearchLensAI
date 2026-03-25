@@ -4,15 +4,25 @@ from app.api.endpoints import router as api_router
 from app.services import initialize_db
 import logging
 import asyncio
+from contextlib import asynccontextmanager
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Initialize resources during app lifespan without blocking startup."""
+    logger.info("Starting ResearchLens AI API...")
+    asyncio.create_task(initialize_db())
+    yield
+
+
 app = FastAPI(
     title="ResearchLens AI",
     description="Intelligent Academic Research Assistant API",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan,
 )
 
 # CORS
@@ -26,12 +36,6 @@ app.add_middleware(
 
 # Include API router
 app.include_router(api_router, prefix="/api/v1")
-
-@app.on_event("startup")
-async def startup_event():
-    """Initialize resources on startup."""
-    logger.info("Starting ResearchLens AI API...")
-    asyncio.create_task(initialize_db())
 
 @app.get("/")
 async def root():
