@@ -1,0 +1,698 @@
+{
+  "project": {
+    "name": "ResearchLens AI",
+    "version": "1.0.0",
+    "description": "Intelligent Academic Research Assistant powered by Endee Vector Database",
+    "internship_evaluation": {
+      "company": "Endee",
+      "requirements": [
+        "Star Endee GitHub repository",
+        "Well-defined AI/ML project",
+        "Practical use case with semantic search",
+        "Endee as core vector database",
+        "GitHub repository with comprehensive README",
+        "Working demo with documentation"
+      ]
+    }
+  },
+  
+  "tech_stack": {
+    "vector_database": {
+      "name": "Endee",
+      "version": "0.1.20+",
+      "pypi": "endee",
+      "github": "https://github.com/endee-io/endee",
+      "features_used": [
+        "Hybrid search (dense + sparse vectors)",
+        "Metadata filtering with $eq, $in, $range operators",
+        "INT8 quantization for memory efficiency",
+        "HNSW indexing for fast ANN search",
+        "Batch upsert (max 1000 vectors)",
+        "Filtered querying with prefilter_cardinality_threshold"
+      ]
+    },
+    "embeddings": {
+      "model": "sentence-transformers/all-MiniLM-L6-v2",
+      "dimension": 384,
+      "library": "sentence-transformers"
+    },
+    "backend": {
+      "framework": "FastAPI",
+      "version": "0.109.0+",
+      "async": true
+    },
+    "frontend": {
+      "framework": "Streamlit",
+      "version": "1.31.0+"
+    },
+    "llm": {
+      "provider": "OpenAI",
+      "model": "gpt-4-turbo",
+      "alternative": "anthropic/claude-3-sonnet"
+    },
+    "python_version": "3.9+"
+  },
+
+  "project_structure": {
+    "root_files": [
+      {
+        "path": "requirements.txt",
+        "description": "Python dependencies"
+      },
+      {
+        "path": "docker-compose.yml",
+        "description": "Docker orchestration for Endee + App"
+      },
+      {
+        "path": ".env.example",
+        "description": "Environment variables template"
+      },
+      {
+        "path": "README.md",
+        "description": "Comprehensive project documentation"
+      },
+      {
+        "path": ".gitignore",
+        "description": "Git ignore patterns"
+      }
+    ],
+    "directories": [
+      {
+        "path": "app/",
+        "files": [
+          "__init__.py",
+          "main.py",
+          "config.py",
+          "models.py"
+        ]
+      },
+      {
+        "path": "app/routers/",
+        "files": [
+          "__init__.py",
+          "search.py",
+          "upload.py",
+          "chat.py"
+        ]
+      },
+      {
+        "path": "core/",
+        "files": [
+          "__init__.py",
+          "endee_client.py",
+          "embeddings.py",
+          "rag_engine.py",
+          "paper_processor.py"
+        ]
+      },
+      {
+        "path": "frontend/",
+        "files": [
+          "streamlit_app.py"
+        ]
+      },
+      {
+        "path": "data/",
+        "files": [
+          "sample_papers.json"
+        ]
+      },
+      {
+        "path": "scripts/",
+        "files": [
+          "init_index.py",
+          "load_sample_data.py"
+        ]
+      },
+      {
+        "path": "tests/",
+        "files": [
+          "test_endee.py",
+          "test_api.py"
+        ]
+      },
+      {
+        "path": "notebooks/",
+        "files": [
+          "benchmark.ipynb"
+        ]
+      }
+    ]
+  },
+
+  "file_implementations": {
+    "requirements.txt": {
+      "content": "endee>=0.1.20\nfastapi>=0.109.0\nuvicorn[standard]>=0.27.0\nstreamlit>=1.31.0\nsentence-transformers>=2.3.0\nopenai>=1.12.0\npython-dotenv>=1.0.0\npydantic>=2.6.0\nhttpx>=0.26.0\nnumpy>=1.24.0\npandas>=2.0.0\npytest>=8.0.0\npytest-asyncio>=0.23.0\naiofiles>=23.2.0\npython-multipart>=0.0.6"
+    },
+
+    ".env.example": {
+      "content": "# Endee Configuration\nENDEE_HOST=http://localhost:8080\nENDEE_TOKEN=your-endee-token-here\nENDEE_INDEX_NAME=academic_papers\n\n# Embedding Model\nEMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2\nEMBEDDING_DIMENSION=384\n\n# OpenAI Configuration\nOPENAI_API_KEY=sk-your-openai-key-here\nOPENAI_MODEL=gpt-4-turbo\n\n# Application Settings\nAPP_HOST=0.0.0.0\nAPP_PORT=8000\nDEBUG=true\n\n# Streamlit\nSTREAMLIT_PORT=8501"
+    },
+
+    "docker-compose.yml": {
+      "content": "version: '3.8'\n\nservices:\n  endee:\n    image: endeeio/endee-server:latest\n    container_name: endee-server\n    ports:\n      - \"8080:8080\"\n    volumes:\n      - endee-data:/data\n    environment:\n      - ENDEE_PORT=8080\n      - ENDEE_DATA_PATH=/data\n    restart: unless-stopped\n    healthcheck:\n      test: [\"CMD\", \"curl\", \"-f\", \"http://localhost:8080/health\"]\n      interval: 30s\n      timeout: 10s\n      retries: 3\n\n  backend:\n    build: .\n    container_name: researchlens-backend\n    ports:\n      - \"8000:8000\"\n    environment:\n      - ENDEE_HOST=http://endee:8080\n      - ENDEE_TOKEN=${ENDEE_TOKEN}\n      - OPENAI_API_KEY=${OPENAI_API_KEY}\n    depends_on:\n      endee:\n        condition: service_healthy\n    volumes:\n      - ./app:/app/app\n      - ./core:/app/core\n      - ./data:/app/data\n    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload\n\n  frontend:\n    image: python:3.11-slim\n    container_name: researchlens-frontend\n    ports:\n      - \"8501:8501\"\n    working_dir: /app\n    volumes:\n      - ./frontend:/app/frontend\n      - ./data:/app/data\n    command: |\n      pip install streamlit requests && \n      streamlit run frontend/streamlit_app.py --server.port 8501 --server.address 0.0.0.0\n    depends_on:\n      - backend\n\nvolumes:\n  endee-data:"
+    },
+
+    "core/endee_client.py": {
+      "description": "Endee vector database client manager with connection pooling",
+      "implementation_notes": [
+        "Initialize Endee client with token from environment",
+        "Create hybrid index with sparse_model='default' for BM25",
+        "Use Precision.INT8 for memory efficiency",
+        "Implement connection health check",
+        "Handle index creation if not exists"
+      ],
+      "key_functions": [
+        "get_client() - Returns singleton Endee client",
+        "create_index() - Creates academic_papers index with hybrid search",
+        "get_index() - Gets index reference",
+        "check_health() - Verifies Endee connection"
+      ],
+      "endee_config": {
+        "index_name": "academic_papers",
+        "dimension": 384,
+        "space_type": "cosine",
+        "precision": "Precision.INT8",
+        "sparse_model": "default",
+        "M": 32,
+        "ef_con": 200
+      }
+    },
+
+    "core/embeddings.py": {
+      "description": "Text embedding service using sentence-transformers",
+      "implementation_notes": [
+        "Load all-MiniLM-L6-v2 model (384 dimensions)",
+        "Implement batch encoding for efficiency",
+        "Cache embeddings for repeated queries",
+        "Normalize vectors for cosine similarity"
+      ],
+      "key_functions": [
+        "get_embedding_model() - Returns singleton model",
+        "encode_text(text) - Encode single text to vector",
+        "encode_batch(texts) - Encode multiple texts efficiently",
+        "normalize_vector(vector) - L2 normalize for cosine search"
+      ]
+    },
+
+    "core/rag_engine.py": {
+      "description": "RAG pipeline for generating answers with cited sources",
+      "implementation_notes": [
+        "Retrieve top-k relevant papers from Endee",
+        "Construct context from paper abstracts",
+        "Prompt LLM with context and question",
+        "Include citations in response"
+      ],
+      "key_functions": [
+        "retrieve_context(query, top_k=5) - Get relevant papers from Endee",
+        "generate_answer(question, context) - LLM generation",
+        "rag_query(query, top_k=5) - Full RAG pipeline"
+      ],
+      "prompt_template": "You are a research assistant. Answer the question using the provided context from academic papers. Include citations with paper IDs.\n\nContext:\n{context}\n\nQuestion: {question}\n\nAnswer:"
+    },
+
+    "core/paper_processor.py": {
+      "description": "Process academic papers for ingestion",
+      "implementation_notes": [
+        "Extract text from PDF or JSON",
+        "Generate dense embeddings",
+        "Generate sparse vectors (BM25-style)",
+        "Extract metadata (year, authors, field, citations)"
+      ],
+      "key_functions": [
+        "process_paper(paper_dict) - Process single paper",
+        "extract_metadata(paper) - Extract structured metadata",
+        "generate_sparse_vector(text) - Create BM25-style sparse representation"
+      ]
+    },
+
+    "app/config.py": {
+      "description": "Application configuration from environment variables",
+      "content_structure": {
+        "classes": ["Settings (Pydantic BaseModel)"],
+        "settings": [
+          "endee_host",
+          "endee_token",
+          "endee_index_name",
+          "embedding_model",
+          "embedding_dimension",
+          "openai_api_key",
+          "openai_model",
+          "app_host",
+          "app_port"
+        ]
+      }
+    },
+
+    "app/models.py": {
+      "description": "Pydantic models for API request/response",
+      "models": [
+        {
+          "name": "SearchRequest",
+          "fields": ["query: str", "top_k: int = 10", "filters: Optional[dict]", "hybrid: bool = True"]
+        },
+        {
+          "name": "SearchResponse",
+          "fields": ["results: List[PaperResult]", "query_time_ms: float"]
+        },
+        {
+          "name": "PaperResult",
+          "fields": ["id: str", "title: str", "similarity: float", "metadata: dict"]
+        },
+        {
+          "name": "ChatRequest",
+          "fields": ["question: str", "top_k: int = 5"]
+        },
+        {
+          "name": "ChatResponse",
+          "fields": ["answer: str", "sources: List[PaperResult]", "query_time_ms: float"]
+        },
+        {
+          "name": "UploadRequest",
+          "fields": ["papers: List[dict]"]
+        }
+      ]
+    },
+
+    "app/main.py": {
+      "description": "FastAPI application entry point",
+      "implementation_notes": [
+        "Initialize FastAPI app with CORS",
+        "Include routers (search, upload, chat)",
+        "Add startup event for Endee connection",
+        "Add health check endpoint"
+      ],
+      "endpoints": [
+        {"path": "/", "method": "GET", "description": "Root endpoint"},
+        {"path": "/health", "method": "GET", "description": "Health check"},
+        {"path": "/api/v1/search", "method": "POST", "description": "Semantic search"},
+        {"path": "/api/v1/search/hybrid", "method": "POST", "description": "Hybrid search"},
+        {"path": "/api/v1/papers", "method": "POST", "description": "Upload papers"},
+        {"path": "/api/v1/papers/batch", "method": "POST", "description": "Batch upload"},
+        {"path": "/api/v1/chat", "method": "POST", "description": "RAG chat"},
+        {"path": "/api/v1/recommend/{paper_id}", "method": "GET", "description": "Similar papers"},
+        {"path": "/api/v1/stats", "method": "GET", "description": "Index statistics"}
+      ]
+    },
+
+    "app/routers/search.py": {
+      "description": "Search endpoints for paper discovery",
+      "endpoints": [
+        {
+          "path": "/api/v1/search",
+          "method": "POST",
+          "function": "semantic_search",
+          "description": "Dense vector similarity search with filters"
+        },
+        {
+          "path": "/api/v1/search/hybrid",
+          "method": "POST",
+          "function": "hybrid_search",
+          "description": "Combined dense + sparse vector search"
+        }
+      ],
+      "endee_usage": {
+        "semantic_search": "index.query(vector=embedding, top_k=top_k, filter=filters)",
+        "hybrid_search": "index.query(vector=dense, sparse_indices=sparse_idx, sparse_values=sparse_val, top_k=top_k)"
+      }
+    },
+
+    "app/routers/upload.py": {
+      "description": "Paper ingestion endpoints",
+      "endpoints": [
+        {
+          "path": "/api/v1/papers",
+          "method": "POST",
+          "function": "upload_papers",
+          "description": "Upload single or multiple papers"
+        },
+        {
+          "path": "/api/v1/papers/batch",
+          "method": "POST",
+          "function": "batch_upload",
+          "description": "Batch upload up to 1000 papers"
+        }
+      ],
+      "endee_usage": {
+        "upsert": "index.upsert([vector_objects])",
+        "batch_size": 1000,
+        "vector_object": {
+          "id": "paper_id",
+          "vector": "[384-dim embedding]",
+          "sparse_indices": "[BM25 term indices]",
+          "sparse_values": "[BM25 term weights]",
+          "meta": {"title", "abstract", "authors", "year", "field"},
+          "filter": {"year", "field", "citation_count"}
+        }
+      }
+    },
+
+    "app/routers/chat.py": {
+      "description": "RAG-based chat endpoint",
+      "endpoints": [
+        {
+          "path": "/api/v1/chat",
+          "method": "POST",
+          "function": "chat_query",
+          "description": "Ask questions about research papers with cited sources"
+        }
+      ],
+      "endee_usage": {
+        "retrieve": "index.query(vector=question_embedding, top_k=top_k)",
+        "rag_pipeline": "Retrieve -> Construct Context -> LLM Generation -> Return with Citations"
+      }
+    },
+
+    "frontend/streamlit_app.py": {
+      "description": "Interactive Streamlit frontend",
+      "pages": [
+        {
+          "name": "Search",
+          "features": ["Semantic search input", "Filter by year/field", "Results display with similarity scores"]
+        },
+        {
+          "name": "Chat",
+          "features": ["Q&A interface", "Cited sources display", "Conversation history"]
+        },
+        {
+          "name": "Upload",
+          "features": ["JSON/CSV upload", "Batch processing", "Ingestion status"]
+        },
+        {
+          "name": "Stats",
+          "features": ["Index statistics", "Vector count", "Performance metrics"]
+        }
+      ],
+      "api_calls": [
+        "POST /api/v1/search - Search papers",
+        "POST /api/v1/chat - Ask questions",
+        "POST /api/v1/papers/batch - Upload papers",
+        "GET /api/v1/stats - Get statistics"
+      ]
+    },
+
+    "scripts/init_index.py": {
+      "description": "Initialize Endee index for academic papers",
+      "implementation": [
+        "Connect to Endee client",
+        "Check if index exists",
+        "Create index with hybrid search config if not exists",
+        "Print index statistics"
+      ],
+      "endee_code_pattern": "client.create_index(name='academic_papers', dimension=384, space_type='cosine', sparse_model='default', precision=Precision.INT8, M=32, ef_con=200)"
+    },
+
+    "scripts/load_sample_data.py": {
+      "description": "Load sample arXiv papers into Endee",
+      "implementation": [
+        "Load sample_papers.json",
+        "Process each paper (embeddings + sparse vectors)",
+        "Batch upsert to Endee (1000 per batch)",
+        "Report ingestion statistics"
+      ],
+      "sample_data_count": 1000
+    },
+
+    "data/sample_papers.json": {
+      "description": "Sample academic papers dataset",
+      "structure": [
+        {
+          "id": "paper_001",
+          "title": "Attention Is All You Need",
+          "abstract": "We propose a new simple network architecture...",
+          "authors": ["Vaswani", "Shazeer", "Parmar"],
+          "year": 2017,
+          "field": "cs.LG",
+          "citations": 50000,
+          "url": "https://arxiv.org/abs/1706.03762"
+        }
+      ],
+      "count": 1000
+    },
+
+    "tests/test_endee.py": {
+      "description": "Unit tests for Endee integration",
+      "test_cases": [
+        "test_client_connection",
+        "test_index_creation",
+        "test_vector_upsert",
+        "test_semantic_search",
+        "test_hybrid_search",
+        "test_filtered_query",
+        "test_vector_deletion"
+      ]
+    },
+
+    "tests/test_api.py": {
+      "description": "API endpoint tests",
+      "test_cases": [
+        "test_health_endpoint",
+        "test_search_endpoint",
+        "test_chat_endpoint",
+        "test_upload_endpoint",
+        "test_stats_endpoint"
+      ]
+    },
+
+    "notebooks/benchmark.ipynb": {
+      "description": "Performance benchmark notebook",
+      "benchmarks": [
+        "Query latency (p50, p95, p99)",
+        "Throughput (queries/sec)",
+        "Memory usage vs precision levels",
+        "Endee vs Chroma vs Qdrant comparison"
+      ]
+    },
+
+    "README.md": {
+      "sections": [
+        "Project Title & Badges",
+        "Overview",
+        "Features",
+        "Architecture Diagram",
+        "Quick Start Guide",
+        "Endee Integration Details",
+        "API Documentation",
+        "Configuration",
+        "Benchmarks",
+        "Testing",
+        "Contributing",
+        "License"
+      ],
+      "badges": [
+        "Endee Powered",
+        "Python 3.9+",
+        "License: MIT",
+        "Build Status"
+      ]
+    }
+  },
+
+  "endee_integration_patterns": {
+    "index_creation": {
+      "code": "from endee import Endee, Precision\n\nclient = Endee(token=ENDEE_TOKEN)\nclient.set_base_url(ENDEE_HOST + '/api/v1')\n\nclient.create_index(\n    name='academic_papers',\n    dimension=384,\n    space_type='cosine',\n    sparse_model='default',\n    precision=Precision.INT8,\n    M=32,\n    ef_con=200\n)",
+      "notes": "sparse_model='default' enables hybrid search with BM25-style sparse vectors"
+    },
+
+    "vector_upsert": {
+      "code": "index = client.get_index('academic_papers')\n\nvectors = [\n    {\n        'id': 'paper_001',\n        'vector': [0.1, 0.2, ...],  # 384-dim dense embedding\n        'sparse_indices': [1, 5, 23, ...],  # BM25 term positions\n        'sparse_values': [0.5, 0.3, 0.8, ...],  # BM25 weights\n        'meta': {\n            'title': 'Paper Title',\n            'abstract': 'Paper abstract...',\n            'authors': ['Author1', 'Author2'],\n            'year': 2024,\n            'field': 'cs.AI'\n        },\n        'filter': {\n            'year': 2024,\n            'field': 'cs.AI',\n            'citation_count': 150\n        }\n    }\n]\n\nindex.upsert(vectors)",
+      "notes": "Max 1000 vectors per batch. sparse_indices and sparse_values required for hybrid search."
+    },
+
+    "semantic_search": {
+      "code": "results = index.query(\n    vector=query_embedding,\n    top_k=10,\n    ef=128,\n    include_vectors=False,\n    filter=[\n        {'year': {'$range': [2020, 2024]}},\n        {'field': {'$in': ['cs.AI', 'cs.LG']}},\n        {'citation_count': {'$gte': 50}}\n    ]\n)",
+      "notes": "Filter operators: $eq, $in, $range. Range values must be 0-999."
+    },
+
+    "hybrid_search": {
+      "code": "results = index.query(\n    vector=dense_query,\n    sparse_indices=sparse_indices,\n    sparse_values=sparse_values,\n    top_k=10,\n    ef=128,\n    include_vectors=False\n)",
+      "notes": "Combines dense semantic + sparse keyword matching for better relevance"
+    },
+
+    "filtered_query_tuning": {
+      "code": "results = index.query(\n    vector=query_embedding,\n    top_k=10,\n    filter=[{'field': {'$eq': 'cs.AI'}}],\n    prefilter_cardinality_threshold=5000,\n    filter_boost_percentage=30\n)",
+      "notes": "prefilter_cardinality_threshold: 1000-1000000 (default 10000). filter_boost_percentage: 0-100 (default 0)"
+    },
+
+    "get_index_stats": {
+      "code": "stats = index.describe()\nprint(f\"Vector count: {stats['vector_count']}\")\nprint(f\"Index size: {stats['index_size_mb']} MB\")",
+      "notes": "Returns vector count, memory usage, and index configuration"
+    },
+
+    "delete_vector": {
+      "code": "index.delete_vector('paper_001')",
+      "notes": "Delete single vector by ID"
+    },
+
+    "delete_with_filter": {
+      "code": "index.delete_with_filter([{'year': {'$eq': 2020}}])",
+      "notes": "Delete multiple vectors matching filter conditions"
+    }
+  },
+
+  "filter_operators": {
+    "$eq": {
+      "description": "Equal to",
+      "types": ["string", "number"],
+      "example": "{'year': {'$eq': 2024}}"
+    },
+    "$in": {
+      "description": "In list",
+      "types": ["string"],
+      "example": "{'field': {'$in': ['cs.AI', 'cs.LG']}}"
+    },
+    "$range": {
+      "description": "Between range (inclusive)",
+      "types": ["number"],
+      "example": "{'citation_count': {'$range': [50, 500]}}",
+      "constraint": "Values must be 0-999. Normalize larger values."
+    }
+  },
+
+  "precision_levels": {
+    "FLOAT32": {"memory": "100%", "accuracy": "Maximum", "use_case": "Critical accuracy"},
+    "FLOAT16": {"memory": "50%", "accuracy": "Very good", "use_case": "Good accuracy balance"},
+    "INT16": {"memory": "50%", "accuracy": "Very good", "use_case": "Default recommendation"},
+    "INT8": {"memory": "25%", "accuracy": "Good", "use_case": "Production (recommended)"},
+    "BINARY2": {"memory": "3.1%", "accuracy": "Lower", "use_case": "Extreme scale"}
+  },
+
+  "api_specifications": {
+    "/api/v1/search": {
+      "method": "POST",
+      "request": {
+        "query": "string (required)",
+        "top_k": "integer (default: 10, max: 512)",
+        "filters": "object (optional)",
+        "hybrid": "boolean (default: true)"
+      },
+      "response": {
+        "results": "array of PaperResult",
+        "query_time_ms": "float"
+      }
+    },
+    "/api/v1/chat": {
+      "method": "POST",
+      "request": {
+        "question": "string (required)",
+        "top_k": "integer (default: 5)"
+      },
+      "response": {
+        "answer": "string",
+        "sources": "array of PaperResult",
+        "query_time_ms": "float"
+      }
+    },
+    "/api/v1/papers/batch": {
+      "method": "POST",
+      "request": {
+        "papers": "array of paper objects (max: 1000)"
+      },
+      "response": {
+        "uploaded": "integer",
+        "failed": "integer",
+        "errors": "array"
+      }
+    },
+    "/api/v1/stats": {
+      "method": "GET",
+      "response": {
+        "vector_count": "integer",
+        "index_size_mb": "float",
+        "dimension": "integer",
+        "precision": "string"
+      }
+    }
+  },
+
+  "sample_data_generation": {
+    "count": 1000,
+    "fields": ["cs.AI", "cs.LG", "cs.CL", "cs.CV", "cs.NE"],
+    "year_range": [2018, 2024],
+    "citation_range": [0, 1000],
+    "title_templates": [
+        "A Novel Approach to {topic}",
+        "Learning {topic} with Deep Neural Networks",
+        "Efficient {topic} for Large-Scale Applications",
+        "Towards Better {topic}: A Comprehensive Study",
+        "{topic}: Methods, Applications, and Future Directions"
+    ],
+    "topics": [
+        "Natural Language Processing",
+        "Computer Vision",
+        "Reinforcement Learning",
+        "Graph Neural Networks",
+        "Transformers",
+        "Few-Shot Learning",
+        "Multi-Modal Learning"
+    ]
+  },
+
+  "deployment_guide": {
+    "local": {
+      "steps": [
+        "1. Clone Endee repo and star it: git clone https://github.com/endee-io/endee.git",
+        "2. Start Endee: docker run -d -p 8080:8080 endeeio/endee-server:latest",
+        "3. Clone ResearchLens: git clone <your-repo>",
+        "4. Install: pip install -r requirements.txt",
+        "5. Configure: cp .env.example .env && edit",
+        "6. Initialize: python scripts/init_index.py",
+        "7. Load data: python scripts/load_sample_data.py",
+        "8. Run backend: uvicorn app.main:app --reload",
+        "9. Run frontend: streamlit run frontend/streamlit_app.py"
+      ]
+    },
+    "docker": {
+      "steps": [
+        "1. docker-compose up -d",
+        "2. Wait for health check (Endee ready)",
+        "3. Run init script: docker exec researchlens-backend python scripts/init_index.py",
+        "4. Load data: docker exec researchlens-backend python scripts/load_sample_data.py",
+        "5. Access: Backend http://localhost:8000, Frontend http://localhost:8501"
+      ]
+    }
+  },
+
+  "evaluation_checklist": {
+    "github_requirements": [
+      "✓ Star Endee repository (https://github.com/endee-io/endee)",
+      "✓ Create public repository with MIT license",
+      "✓ Comprehensive README with architecture diagram",
+      "✓ Working code with Endee integration",
+      "✓ Documentation for setup and usage"
+    ],
+    "technical_requirements": [
+      "✓ Endee as primary vector database",
+      "✓ Hybrid search implementation",
+      "✓ Metadata filtering with multiple operators",
+      "✓ RAG pipeline with LLM",
+      "✓ Production-ready code structure",
+      "✓ Unit tests included"
+    ],
+    "demo_requirements": [
+      "✓ Working Streamlit UI",
+      "✓ Sample dataset loaded",
+      "✓ Search and chat functionality",
+      "✓ Performance benchmarks"
+    ]
+  },
+
+  "bonus_features": {
+    "performance_benchmarks": {
+      "description": "Compare Endee vs alternatives",
+      "metrics": ["Query latency (p50, p95, p99)", "Throughput (QPS)", "Memory usage", "Index build time"]
+    },
+    "multi_modal_search": {
+      "description": "Add image search for paper figures",
+      "implementation": "CLIP embeddings + Endee hybrid index"
+    },
+    "citation_graph": {
+      "description": "Vector similarity for citation recommendations",
+      "implementation": "Build citation network + vector similarity"
+    },
+    "deployment_options": {
+      "description": "Deploy demo publicly",
+      "platforms": ["Hugging Face Spaces", "Render", "Railway"]
+    }
+  }
+}

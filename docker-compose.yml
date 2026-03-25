@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  endee:
+    image: endeeio/endee-server:latest
+    container_name: endee-server
+    ports:
+      - "8080:8080"
+    volumes:
+      - endee-data:/data
+    environment:
+      - ENDEE_PORT=8080
+      - ENDEE_DATA_PATH=/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  backend:
+    build: .
+    container_name: researchlens-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - ENDEE_HOST=http://endee:8080
+      - ENDEE_TOKEN=${ENDEE_TOKEN}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    depends_on:
+      endee:
+        condition: service_healthy
+    volumes:
+      - ./app:/app/app
+      - ./core:/app/core
+      - ./data:/app/data
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  frontend:
+    image: python:3.11-slim
+    container_name: researchlens-frontend
+    ports:
+      - "8501:8501"
+    environment:
+      - API_URL=http://backend:8000/api/v1
+    working_dir: /app
+    volumes:
+      - ./frontend:/app/frontend
+      - ./data:/app/data
+    command: |
+      pip install streamlit requests pandas &&
+      streamlit run frontend/streamlit_app.py --server.port 8501 --server.address 0.0.0.0
+    depends_on:
+      - backend
+
+volumes:
+  endee-data:
